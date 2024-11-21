@@ -64,7 +64,6 @@ export default function Overview_page() {
           </Link>
         </div>
       </div>
-
       {/* Response List */}
       <div className="max-w-2xl mx-auto mt-4">
         {responses.map((response, index) => (
