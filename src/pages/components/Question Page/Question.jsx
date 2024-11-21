@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Switch from '@mui/material/Switch';
 import EditIcon from '@mui/icons-material/Edit';
+import { Link } from 'react-router-dom';
 
 export default function Form() {
   const [questions, setQuestions] = useState([
@@ -55,12 +56,14 @@ export default function Form() {
             <h1 className="text-2xl font-bold">AI Form</h1>
           </div>
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Send
+            Publish
           </button>
         </div>
         <div className="flex gap-4 mt-2 justify-center">
           <a href="#" className={isQuestions ? "underline font-bold text-red-500" : ""} onClick={toggleQuestions}>Questions</a>
-          <a href="#" className={!isQuestions ? "underline font-bold text-red-500" : ""} onClick={toggleResponses}>Responses</a>
+          <Link to="/responses" className={!isQuestions ? "underline font-bold text-red-500" : ""} onClick={toggleResponses}>
+            Responses
+          </Link>
         </div>
       </div>
 
