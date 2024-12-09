@@ -92,7 +92,7 @@ export default function Form() {
         <div className="p-6 space-y-4">
           {questions.map((question, index) => (
             <div key={index} className="bg-white shadow-md rounded-lg p-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
+              <label className=" text-gray-700 text-sm font-bold mb-2 flex items-center">
                 <textarea
                   name=""
                   id=""
