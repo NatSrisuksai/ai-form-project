@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { Link } from "react-router-dom";
-export default function Overview_page() {
+export default function Deeply_overview() {
   // eslint-disable-next-line no-unused-vars
   const [questions, setQuestions] = useState([
     {
@@ -27,13 +27,7 @@ export default function Overview_page() {
       response:
         "Dijkstra's Algorithm finds the shortest path between nodes in a graph, where the edges have non-negative weights. It starts from a selected source node and explores the paths to other nodes. As it goes, it updates the shortest distances it finds. By using a priority queue, the algorithm picks the node with the smallest distance and continues until the shortest paths to all nodes are discovered. It's used in things like network routing and GPS navigation.",
       score: 10,
-    },
-    {
-      name: "Diddy",
-      response:
-        "Dijkstra's Algorithm helps find the shortest way between places on a map or points in a network. It starts from one point and checks the shortest path to each connected point. It keeps track of the smallest distance and moves to the next closest point, repeating this until it has found the shortest routes.",
-      score: 7,
-    },
+    }
   ];
 
   return (
