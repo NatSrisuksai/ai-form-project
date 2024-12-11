@@ -15,7 +15,7 @@ export default function App() {
           <Route path="/deeply_overview" element={<Deeply_overview />} />
           <Route path="/responses" element={<Response />} />
           <Route path="/studentQuestion" element={<StudentQuestion />} /> 
-          <Route path="/studentResult" element={<StudentResult />} /> 
+          <Route path="/studentResult/:userID" element={<StudentResult />} /> 
         </Routes>
       </div>
     </Router>

@@ -1,18 +1,59 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import AddIcon from "@mui/icons-material/Add";
+import { useParams } from "react-router-dom";
 
 export default function StudentResult() {
-  const [questions, setQuestions] = useState([
-    {
-      text: "What is Different between Array and Linked list?",
-      answer:
-        "Dijkstra's Algorithm helps find the shortest way between places on a map or points in a network. It starts from one point and checks the shortest path to each connected point. It keeps track of the smallest distance and moves to the next closest point, repeating this until it has found the shortest routes.",
-      feedback:
-        "Your explanation of Dijkstra's Algorithm is a good start, but it can be improved. Try to mention key terms like 'shortest path,' 'graph,' 'non-negative edge weights,' and 'priority queue' to make your answer more precise and complete. Here's an example of a refined version: 'Dijkstra's Algorithm finds the shortest path in a graph with non-negative edge weights, using a priority queue to select the next closest node.' Keep practicing!",
-    },
-  ]);
+  const { userID } = useParams();
+  const [questions, setQuestions] = useState([]);
+  const [userAnswers, setUserAnswer] = useState([]);
 
+  const fetchQuestion = useCallback(async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/questions/`);
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions(data);
+      } else {
+        console.error("Failed to fetch question");
+      }
+    } catch (error) {
+      console.error("Error fetching question:", error);
+    }
+  }, []);
+
+  const userAnswer = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/studentResult/${userID}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setUserAnswer(data);
+      } else {
+        console.error("Failed to fetch question");
+      }
+    } catch (error) {
+      console.error("Error fetching question:", error);
+    }
+  }, [userID]);
+
+  useEffect(() => {
+    fetchQuestion();
+    userAnswer();
+  }, [fetchQuestion, userAnswer]);
+
+  const mapQuestionsToAnswers = (questions, userAnswers) => {
+    const questionAnswerMap = {};
+
+    questions.forEach((question, index) => {
+      const answer = userAnswers[index]?.answer || "No answer";
+      questionAnswerMap[question.text] = answer;
+    });
+
+    return questionAnswerMap;
+  };
+  const questionAnswerMapping = mapQuestionsToAnswers(questions, userAnswers);
   return (
     <div className="bg-red-100 min-h-screen min-w-screen w-full h-full ">
       {/* Header */}
@@ -42,29 +83,31 @@ export default function StudentResult() {
 
         {/* Questions Card */}
         <div className="p-6 space-y-4">
-          {questions.map((question, index) => (
-            <div key={index} className="bg-white shadow-md rounded-lg p-4">
-              <label className=" text-gray-700 text-sm font-bold mb-3 flex items-center">
-                <p>{question.text} </p>
-              </label>
-              <label className=" text-gray-700 text-sm font-bold  flex items-center">
-                <p>Your Answer : </p>
-              </label>
-              <div className="border-b border-6 border-black mb-3 mt-1"></div>
-              {/* under line */}
-              <p>{question.answer}</p>
-              <div className="border-b border-6 border-black mt-3 mb-1"></div>
-              {/* under line */}
-              <label className=" text-gray-700 text-sm font-bold  flex items-center mt-6 mb-3">
-                <p>Feedback : </p>
-              </label>
-              <div className="border-b border-6 border-black mb-3 mt-1"></div>
-              {/* under line */}
-              <p>{question.feedback}</p>
-              <div className="border-b border-6 border-black mb-3 mt-3"></div>
-              {/* under line */}
-            </div>
-          ))}
+          {Object.entries(questionAnswerMapping).map(
+            ([questionText, answer], index) => (
+              <div key={index} className="bg-white shadow-md rounded-lg p-4">
+                <label className="text-gray-700 text-sm font-bold mb-3 flex items-center">
+                  <p>{questionText}</p>
+                </label>
+                <label className="text-gray-700 text-sm font-bold flex items-center">
+                  <p>Your Answer:</p>
+                </label>
+                <div className="border-b border-6 border-black mb-3 mt-1"></div>
+                {/* under line */}
+                <p>{answer}</p>
+                <div className="border-b border-6 border-black mt-3 mb-1"></div>
+                {/* under line */}
+                <label className="text-gray-700 text-sm font-bold flex items-center mt-6 mb-3">
+                  <p>Feedback:</p>
+                </label>
+                <div className="border-b border-6 border-black mb-3 mt-1"></div>
+                {/* under line */}
+                <p>Feed back ja</p>
+                <div className="border-b border-6 border-black mb-3 mt-3"></div>
+                {/* under line */}
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
