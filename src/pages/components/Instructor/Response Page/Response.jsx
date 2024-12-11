@@ -1,16 +1,10 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import React, { useState ,useEffect } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { Link } from "react-router-dom";
 export default function Response() {
-  // eslint-disable-next-line no-unused-vars
-  const [questions, setQuestions] = useState([
-    {
-      text: "What is Different between Array and Linked list?",
-      required: false,
-    },
-    { text: "Describe about Dijkstra's Algorithm briefly.", required: false },
-  ]);
+   
+  const [questions, setQuestions] = useState([]);
   
   const [isQuestions, setIsQuestions] = useState(false);
 
@@ -20,6 +14,26 @@ export default function Response() {
   const toggleResponses = () => {
     setIsQuestions(false);
   };
+
+
+  const fetchQuestions = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/questions');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched questions:', data);
+        setQuestions(data); // Update state with fetched questions
+      } else {
+        console.error('Failed to fetch questions');
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuestions();
+  }, []); 
 
   return (
     <div className="bg-red-100 min-h-screen min-w-screen w-full h-full ">
@@ -58,7 +72,7 @@ export default function Response() {
               <p className="text-lg">{question.text}</p>
               <span className="text-sm">Average Score: {index + 6}</span> {/* Example score */}
             </div>
-            <Link to="/overview" className="text-blue-500 underline">Overview</Link>
+            <Link to={`/overview/${question._id}`} className="text-blue-500 underline">Overview</Link> {/* Pass question ID */}
           </div>
         ))}
       </div>
