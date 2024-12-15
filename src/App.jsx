@@ -5,6 +5,7 @@ import Overview_page from './pages/components/Instructor/Question Page/overview 
 import Deeply_overview from './pages/components/Instructor/Question Page/overview question/Deeply_overview';
 import StudentQuestion from './pages/components/Student/Student Question Page/StudentQuestion';
 import StudentResult from './pages/components/Student/Student Result Page/StudentResult';
+
 export default function App() {
   return (
     <Router>
@@ -14,8 +15,8 @@ export default function App() {
           <Route path="/overview/:questionId" element={<Overview_page />} />
           <Route path="/deeply_overview" element={<Deeply_overview />} />
           <Route path="/responses" element={<Response />} />
-          <Route path="/studentQuestion" element={<StudentQuestion />} /> 
-          <Route path="/studentResult/:userID" element={<StudentResult />} /> 
+          <Route path="/studentQuestion/:examID" element={<StudentQuestion />} /> 
+          <Route path="/studentResult/:examID/:userID" element={<StudentResult />} /> 
         </Routes>
       </div>
     </Router>
