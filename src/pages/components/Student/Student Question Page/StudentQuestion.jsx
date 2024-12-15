@@ -1,17 +1,18 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function StudentQuestion() {
+  const { examID } = useParams();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
-  const [userId, setUserId] = useState(null);
+  const [examTitle, setExamTitle] = useState("Midterm Examination"); // Default title
   const navigate = useNavigate();
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/questions");
+      const response = await fetch(`http://localhost:5000/api/getQuestions?examId=${examID}`);
       if (response.ok) {
         const data = await response.json();
         setQuestions(data);
@@ -23,9 +24,24 @@ export default function StudentQuestion() {
     }
   };
 
+  const fetchExamTitle = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/exams/${examID}`);
+      if (response.ok) {
+        const data = await response.json();
+        setExamTitle(data.title);
+      } else {
+        console.error("Failed to fetch exam title");
+      }
+    } catch (error) {
+      console.error("Error fetching exam title:", error);
+    }
+  };
+
   useEffect(() => {
     fetchQuestions();
-  }, []);
+    fetchExamTitle();
+  }, [examID]);
 
   const handleAnswerChange = (questionId, value) => {
     setAnswers((prevAnswers) => ({
@@ -51,9 +67,9 @@ export default function StudentQuestion() {
       
       if (response.ok) {
         const data = await response.json();
-        setUserId(data.userId);
+        
         alert(`Answers submitted successfully! User ID: ${data.userId}`);
-        navigate(`/studentResult/${data.userId}`);
+        navigate(`/studentResult/${examID}/${data.userId}`);
       } else {
         alert("Failed to submit answers");
       }
@@ -82,7 +98,7 @@ export default function StudentQuestion() {
       <div className="max-w-2xl mx-auto mt-4">
         {/* Title */}
         <div className="bg-red-500 text-white text-left py-3 pl-4 pr-4 flex justify-between items-center rounded-lg">
-          <h1 className="font-bold text-lg">Midterm Examination</h1>
+          <h1 className="font-bold text-lg">{examTitle}</h1>
         </div>
 
         {/* Questions Card */}

@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 
 export default function Form() {
   const [questions, setQuestions] = useState([
-    { text: "", keywords: "", answer: "" }
+    { text: "", keywords: "", answer: "" ,score : 0}
   ]);
 
   const [examTitle, setExamTitle] = useState("Exam Title");
@@ -19,7 +19,11 @@ export default function Form() {
 
   const handleQuestionChange = (index, field, value) => {
     const newQuestions = [...questions];
-    newQuestions[index][field] = value;
+    if (field === 'keywords') {
+      newQuestions[index][field] = value.split(',').map(keyword => keyword.trim());
+    } else {
+      newQuestions[index][field] = value;
+    }
     setQuestions(newQuestions);
   };
 
@@ -40,6 +44,19 @@ export default function Form() {
   };
 
   const publishExam = async () => {
+    // Validation checks
+    if (!examTitle.trim()) {
+      alert("Exam title cannot be empty.");
+      return;
+    }
+
+    for (const question of questions) {
+      if (!question.text.trim() || !question.answer.trim()) {
+        alert("All fields (question, answer, keywords) must be filled out.");
+        return;
+      }
+    }
+
     try {
       const response = await fetch("http://localhost:5000/api/exams", {
         method: "POST",

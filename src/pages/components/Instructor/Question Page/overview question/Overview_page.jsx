@@ -7,6 +7,10 @@ export default function Overview_page() {
   const { questionId } = useParams(); // Get the question ID from the URL
   const [question, setQuestion] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  const [currentSubmission, setCurrentSubmission] = useState(null);
+  const [keywordScore, setKeywordScore] = useState(0);
+  const [relevanceScore, setRelevanceScore] = useState(0);
+  const [grammarScore, setGrammarScore] = useState(0);
 
   const fetchQuestion = useCallback(async () => {
     try {
@@ -45,13 +49,46 @@ export default function Overview_page() {
     fetchSubmissions();
   }, [fetchQuestion, fetchSubmissions]);
 
+  useEffect(() => {
+    // Fetch the current submission data
+    const fetchSubmission = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/submissions/${questionId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+    
+          if (Array.isArray(data)) {
+            // Assuming you want the first item in the array
+            const submission = data[0];
+    
+            if (submission && submission.evaluation) {
+              setCurrentSubmission(submission);
+              setKeywordScore(submission.evaluation.keyword.score);
+              setRelevanceScore(submission.evaluation.reference.score);
+              setGrammarScore(submission.evaluation.grammar.score);
+            } else {
+              console.error("Invalid submission structure");
+            }
+          } else {
+            console.error("Expected data to be an array");
+          }
+        } else {
+          console.error("Failed to fetch submission");
+        }
+      } catch (error) {
+        console.error("Error fetching submission:", error);
+      }
+    };
+    
+
+    fetchSubmission();
+  }, [questionId]);
+
   const [isQuestions, setIsQuestions] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [keywordScore, setKeywordScore] = useState(10);
-  const [relevanceScore, setRelevanceScore] = useState(10);
-  const [grammarScore, setGrammarScore] = useState(10);
 
   const toggleQuestions = () => {
     setIsQuestions(true);
@@ -60,11 +97,17 @@ export default function Overview_page() {
     setIsQuestions(false);
   };
 
-  const openModal = () => {
+  const openModal = (submission) => {
+    setCurrentSubmission(submission);
+    // Initialize input values with the actual scores from the submission
+    setKeywordScore(submission.evaluation.keyword.score);
+    setRelevanceScore(submission.evaluation.reference.score);
+    setGrammarScore(submission.evaluation.grammar.score);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    
     setIsModalOpen(false);
   };
 
@@ -80,6 +123,34 @@ export default function Overview_page() {
       relevanceScore,
       grammarScore,
     });
+  };
+
+  const handleApply = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/updateScores/${questionId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            keywordScore,
+            relevanceScore,
+            grammarScore,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        alert("Scores updated successfully!");
+      } else {
+        alert("Failed to update scores");
+      }
+    } catch (error) {
+      console.error("Error updating scores:", error);
+      alert("An error occurred while updating scores");
+    }
   };
 
   return (
@@ -126,7 +197,7 @@ export default function Overview_page() {
         </div>
 
         {/* Response List */}
-        <div className="max-w-2xl mx-auto mt-4">
+        <div className="max-w-2xl mx-auto mt-4 ">
           {submissions.map((submission, index) => (
             <div
               key={index}
@@ -138,115 +209,116 @@ export default function Overview_page() {
               <p className="mt-2">{submission.answer}</p>
               <div className="flex justify-between items-center mt-2">
                 <button
-                  onClick={openModal}
+                  onClick={() => openModal(submission)}
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
                 >
                   Details
                 </button>
-                <div>Score: 17</div>
+                <div>Score: {parseFloat(submission.evaluation.finalScore).toFixed(2)}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {isModalOpen && (
+      {isModalOpen && currentSubmission && (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex justify-center items-center">
           <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-6">Peter Griffin</h2>
+            <h2 className="text-2xl font-bold mb-6">Submission Details</h2>
             <div className="flex gap-4">
               <div className="bg-gray-100 p-6 rounded mb-6 flex-[3]">
                 <p className="text-gray-800 text-m">
-                  Dijkstra&apos;s Algorithm finds the shortest path between
-                  nodes in a graph, where the edges have non-negative weights.
-                  It starts from a selected source node and explores the paths
-                  to other nodes. As it goes, it updates the shortest distances
-                  it finds. By using a priority queue, the algorithm picks the
-                  node with the smallest distance and continues until the
-                  shortest paths to all nodes are discovered. It&apos;s used in
-                  things like network routing and GPS navigation.
+                  {currentSubmission.answer}
                 </p>
               </div>
               <div className="flex-1">
                 <div className="flex justify-end">
                   <p className="text-m mb-2">
-                    Keyword Score :
+                    Keyword Score:
                     <input
                       type="number"
-                      className="border-2 border-gray-300 rounded-md p-1 w-12 text-m ml-2"
-                      value={keywordScore}
-                      min="0"
-                      max="10"
-                      onChange={handleScoreChange(setKeywordScore)}
+                      max={10}
+                      value={keywordScore} // Use the state value
+                      onChange={(e) => setKeywordScore(Number(e.target.value))}
+                      className="ml-2 border rounded"
                     />
                   </p>
                 </div>
                 <div className="flex justify-end">
                   <p className="text-m mb-2">
-                    Relevance Score :
+                    Relevance Score:
                     <input
                       type="number"
-                      className="border-2 border-gray-300 rounded-md p-1 w-12 text-m ml-2 "
-                      value={relevanceScore}
-                      min="0"
-                      max="10"
-                      onChange={handleScoreChange(setRelevanceScore)}
+                      max={10}
+                      value={relevanceScore} // Use the state value
+                      onChange={(e) =>
+                        setRelevanceScore(Number(e.target.value))
+                      }
+                      className="ml-2 border rounded"
                     />
                   </p>
                 </div>
                 <div className="flex justify-end">
                   <p className="text-m mb-2">
-                    Grammar Score :
+                    Grammar Score:
                     <input
                       type="number"
-                      className="border-2 border-gray-300 rounded-md p-1 w-12 text-m ml-2"
-                      value={grammarScore}
-                      min="0"
-                      max="10"
-                      onChange={handleScoreChange(setGrammarScore)}
+                      max={10}
+                      value={grammarScore} // Use the state value
+                      onChange={(e) => setGrammarScore(Number(e.target.value))}
+                      className="ml-2 border rounded"
                     />
                   </p>
                 </div>
+
                 <div className="flex justify-end">
-                  <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-                    onClick={handleSave}
-                  >
-                    Save
+                  <button className="bg-blue-500 rounded" onClick={handleApply}>
+                    Apply
                   </button>
                 </div>
               </div>
             </div>
             <div className="flex justify-between mb-6 space-x-8">
               <div className="text-green-500 flex-1">
-                <p className="text-m mb-2">Keyword Score: 10</p>
+                <p className="text-m mb-2">
+                  Keyword Score: {currentSubmission.evaluation.keyword.score}
+                </p>
                 <p className="text-m font-semibold mb-2">Keywords Found:</p>
                 <ul className="list-disc ml-6 text-base space-y-1">
-                  <li>evaporation (matched as: vaporizes)</li>
-                  <li>precipitation (matched as: drop)</li>
-                  <li>water cycle</li>
-                  <li>collection (matched as: gather)</li>
+                  {currentSubmission.evaluation.keyword.detail.matched_keywords.map(
+                    (keyword, index) => (
+                      <li key={index}>{keyword}</li>
+                    )
+                  )}
                 </ul>
                 <p className="text-m font-semibold mt-4 mb-2">
                   Keywords Missing:
                 </p>
                 <div>
                   <ul className="list-disc ml-6 text-base">
-                    <li>condensation</li>
-                    <li>condensation</li>
+                    {currentSubmission.evaluation.keyword.detail.unmatched_keywords.map(
+                      (keyword, index) => (
+                        <li key={index}>{keyword}</li>
+                      )
+                    )}
                   </ul>
                 </div>
               </div>
               <div className="text-blue-500 flex-1">
-                <p className="text-m mb-2">Relevance Score: 10</p>
+                <p className="text-m mb-2">
+                  Relevance Score:{" "}
+                  {currentSubmission.evaluation.reference.score}
+                </p>
                 <p className="text-base">
-                  The answer shows a limited understanding of the topic...
+                  {currentSubmission.evaluation.reference.detail}
                 </p>
               </div>
               <div className="text-red-500 flex-1">
-                <p className="text-m mb-2">Grammar Score: 10</p>
+                <p className="text-m mb-2">
+                  Grammar Score: {currentSubmission.evaluation.grammar.score}
+                </p>
                 <p className="text-base">
-                  The grammar is used perfectly correct
+                  {currentSubmission.evaluation.grammar.detail}
                 </p>
               </div>
             </div>
